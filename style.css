@@ -1,0 +1,77 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.game-area {
+    width: 300px; /* 仕様書に記載のサイズを仮置き */
+    height: 500px; /* 仕様書に記載のサイズを仮置き */
+    border: 1px solid #333;
+    margin-bottom: 20px;
+    position: relative; /* 子要素のCanvasを絶対配置するため */
+}
+
+#gameCanvas {
+    display: block; /* Canvas特有の余白を消す */
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+}
+
+.ui-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.score-container,
+.highscore-container,
+.next-fruit-container,
+.message-container,
+.controls-container {
+    padding: 5px 10px;
+    background-color: #ddd;
+    border-radius: 5px;
+}
+
+#nextFruitImage {
+    width: 30px; /* 仮のサイズ */
+    height: 30px; /* 仮のサイズ */
+    vertical-align: middle;
+}
+
+button {
+    padding: 10px 15px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+/* レスポンシブ対応 (アスペクト比維持はJS側でCanvasサイズを調整する想定) */
+@media (max-width: 600px) {
+    .game-area {
+        width: 80vw; /* 画面幅の80% */
+        height: calc(80vw * 5 / 3); /* アスペクト比 3:5 を維持 */
+    }
+
+    #nextFruitImage {
+        width: 25px;
+        height: 25px;
+    }
+
+    button {
+        padding: 8px 12px;
+        font-size: 0.9em;
+    }
+}
