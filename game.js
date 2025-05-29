@@ -469,21 +469,21 @@ function setupEventListeners() {
     gameCanvas.addEventListener('mousemove', updatePreview);
 
     // タッチデバイスのための対応
-    gameCanvas.addEventListener('touchmove', function(evt) {
+    gameCanvas.addEventListener('touchmove', function (evt) {
         evt.preventDefault(); // スクロール防止
         const touch = evt.touches[0];
         const mouseEvt = new MouseEvent('mousemove', {
             clientX: touch.clientX,
-            clientY: touch.clientY
+            clientY: touch.clientY,
         });
         updatePreview(mouseEvt);
     });
 
     // クリック時のフルーツ落下
     gameCanvas.addEventListener('click', dropFruit);
-    
+
     // タップでのフルーツ落下
-    gameCanvas.addEventListener('touchend', function(evt) {
+    gameCanvas.addEventListener('touchend', function (evt) {
         evt.preventDefault(); // タップ後のズーム防止
         const mouseEvt = new MouseEvent('click');
         dropFruit(mouseEvt);
@@ -682,25 +682,31 @@ function handleCollisions(event) {
 
                 // 「ポップコーン現象」のバランス調整 - 新しいフルーツに軽い初速・角速度を与える
                 // 衝突の強さに比例した力を追加
-                const collisionForce = Math.sqrt(
-                    pairs[i].collision.depth * pairs[i].collision.normal.x ** 2 +
-                    pairs[i].collision.depth * pairs[i].collision.normal.y ** 2
-                ) * 0.05; // バランス係数、調整可能
-                
+                const collisionForce =
+                    Math.sqrt(
+                        pairs[i].collision.depth *
+                            pairs[i].collision.normal.x ** 2 +
+                            pairs[i].collision.depth *
+                                pairs[i].collision.normal.y ** 2
+                    ) * 0.05; // バランス係数、調整可能
+
                 // 少しランダム性を加味
                 const randomAngle = Math.random() * Math.PI * 2;
                 const forceX = Math.cos(randomAngle) * collisionForce;
                 const forceY = Math.sin(randomAngle) * collisionForce;
-                
+
                 // 進化したフルーツを生成
                 const newFruit = createFruit(centerX, centerY, evolvedFruit);
-                
+
                 // 初速度と角速度を設定
-                Matter.Body.setVelocity(newFruit, { 
+                Matter.Body.setVelocity(newFruit, {
                     x: forceX,
-                    y: forceY * -1 // 少し上向きに
+                    y: forceY * -1, // 少し上向きに
                 });
-                Matter.Body.setAngularVelocity(newFruit, (Math.random() - 0.5) * 0.2);
+                Matter.Body.setAngularVelocity(
+                    newFruit,
+                    (Math.random() - 0.5) * 0.2
+                );
 
                 // フルーツ結合音を再生
                 if (window.gameAudio) {

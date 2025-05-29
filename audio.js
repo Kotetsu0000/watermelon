@@ -33,18 +33,38 @@ async function preloadAudio() {
     try {
         // BGM読み込み
         for (const [key, path] of Object.entries(audioFiles.bgm)) {
-            audioObjects.bgm[key] = new Audio(path);
-            audioObjects.bgm[key].loop = true; // BGMはループ再生
-            audioObjects.bgm[key].volume = bgmVolume;
+            try {
+                audioObjects.bgm[key] = new Audio(path);
+                audioObjects.bgm[key].loop = true; // BGMはループ再生
+                audioObjects.bgm[key].volume = bgmVolume;
+                
+                // エラーハンドリング
+                audioObjects.bgm[key].onerror = () => {
+                    console.warn(`BGMファイルのロードに失敗しました: ${path}`);
+                };
+            } catch (e) {
+                console.warn(`BGMの読み込みに失敗しました: ${path}`, e);
+                // エラー時も続行
+            }
         }
 
         // 効果音読み込み
         for (const [key, path] of Object.entries(audioFiles.sfx)) {
-            audioObjects.sfx[key] = new Audio(path);
-            audioObjects.sfx[key].volume = sfxVolume;
+            try {
+                audioObjects.sfx[key] = new Audio(path);
+                audioObjects.sfx[key].volume = sfxVolume;
+                
+                // エラーハンドリング
+                audioObjects.sfx[key].onerror = () => {
+                    console.warn(`効果音ファイルのロードに失敗しました: ${path}`);
+                };
+            } catch (e) {
+                console.warn(`効果音の読み込みに失敗しました: ${path}`, e);
+                // エラー時も続行
+            }
         }
 
-        console.log('全てのオーディオファイルの読み込みが完了しました');
+        console.log('オーディオファイルの読み込み処理を完了しました');
     } catch (error) {
         console.error(
             'オーディオファイルの読み込み中にエラーが発生しました:',
