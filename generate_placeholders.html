@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>フルーツプレースホルダー生成</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .gallery {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 10px;
+            }
+            .fruit-item {
+                border: 1px solid #ddd;
+                padding: 10px;
+                border-radius: 5px;
+                text-align: center;
+            }
+            .fruit-img {
+                display: block;
+                margin: 0 auto;
+            }
+            button {
+                padding: 10px 15px;
+                background-color: #4caf50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+                margin: 20px 0;
+            }
+            button:hover {
+                background-color: #45a049;
+            }
+            .instructions {
+                background-color: #f8f8f8;
+                padding: 15px;
+                border-left: 5px solid #4caf50;
+                margin-bottom: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>フルーツプレースホルダー画像生成ツール</h1>
+
+        <div class="instructions">
+            <h3>使い方:</h3>
+            <ol>
+                <li>
+                    下の「プレースホルダー画像を生成」ボタンをクリックします。
+                </li>
+                <li>
+                    画像が生成されたら、右クリックして「名前を付けて画像を保存」を選択します。
+                </li>
+                <li>
+                    各画像を「images」フォルダに指定のファイル名で保存します。
+                </li>
+                <li>すべての画像を保存したらスイカゲームを実行できます。</li>
+            </ol>
+        </div>
+
+        <button id="generateBtn">プレースホルダー画像を生成</button>
+
+        <div class="gallery" id="fruitGallery"></div>
+
+        <script>
+            // フルーツデータ（game.jsと同じ）
+            const fruitData = [
+                {
+                    id: 0,
+                    name: 'さくらんぼ',
+                    evolutionTo: 1,
+                    score: 1,
+                    radius: 15,
+                    image: 'images/sakuranbo.png',
+                    color: '#FFB6C1',
+                }, // LightPink
+                {
+                    id: 1,
+                    name: 'いちご',
+                    evolutionTo: 2,
+                    score: 3,
+                    radius: 20,
+                    image: 'images/ichigo.png',
+                    color: '#FF6347',
+                }, // Tomato
+                {
+                    id: 2,
+                    name: 'ぶどう',
+                    evolutionTo: 3,
+                    score: 6,
+                    radius: 25,
+                    image: 'images/budou.png',
+                    color: '#8A2BE2',
+                }, // BlueViolet
+                {
+                    id: 3,
+                    name: 'デコポン',
+                    evolutionTo: 4,
+                    score: 10,
+                    radius: 30,
+                    image: 'images/dekopon.png',
+                    color: '#FFA500',
+                }, // Orange
+                {
+                    id: 4,
+                    name: 'かき',
+                    evolutionTo: 5,
+                    score: 15,
+                    radius: 35,
+                    image: 'images/kaki.png',
+                    color: '#FF8C00',
+                }, // DarkOrange
+                {
+                    id: 5,
+                    name: 'りんご',
+                    evolutionTo: 6,
+                    score: 21,
+                    radius: 40,
+                    image: 'images/ringo.png',
+                    color: '#FF0000',
+                }, // Red
+                {
+                    id: 6,
+                    name: 'なし',
+                    evolutionTo: 7,
+                    score: 28,
+                    radius: 45,
+                    image: 'images/nashi.png',
+                    color: '#90EE90',
+                }, // LightGreen
+                {
+                    id: 7,
+                    name: 'もも',
+                    evolutionTo: 8,
+                    score: 36,
+                    radius: 50,
+                    image: 'images/momo.png',
+                    color: '#FFC0CB',
+                }, // Pink
+                {
+                    id: 8,
+                    name: 'パイナップル',
+                    evolutionTo: 9,
+                    score: 45,
+                    radius: 55,
+                    image: 'images/pineapple.png',
+                    color: '#FFFFE0',
+                }, // LightYellow
+                {
+                    id: 9,
+                    name: 'メロン',
+                    evolutionTo: 10,
+                    score: 55,
+                    radius: 60,
+                    image: 'images/melon.png',
+                    color: '#98FB98',
+                }, // PaleGreen
+                {
+                    id: 10,
+                    name: 'スイカ',
+                    evolutionTo: null,
+                    score: 66,
+                    radius: 70,
+                    image: 'images/suika.png',
+                    color: '#32CD32',
+                }, // LimeGreen
+            ];
+
+            // プレースホルダー画像を生成する関数
+            function createFruitPlaceholder(fruit) {
+                const padding = 4;
+                const size = fruit.radius * 2 + padding * 2;
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                // 透明な背景
+                ctx.clearRect(0, 0, size, size);
+
+                // フルーツの円を描画
+                ctx.beginPath();
+                ctx.arc(size / 2, size / 2, fruit.radius, 0, Math.PI * 2);
+                ctx.fillStyle = fruit.color;
+                ctx.fill();
+                ctx.strokeStyle = '#555';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.closePath();
+
+                // フルーツの名前を描画
+                ctx.font = `${Math.max(10, fruit.radius / 2)}px sans-serif`;
+                ctx.fillStyle = '#000';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(fruit.name, size / 2, size / 2);
+
+                return canvas.toDataURL('image/png');
+            }
+
+            // ギャラリーにフルーツ画像を追加する関数
+            function populateGallery() {
+                const gallery = document.getElementById('fruitGallery');
+                gallery.innerHTML = '';
+
+                fruitData.forEach((fruit) => {
+                    const imageDataUrl = createFruitPlaceholder(fruit);
+
+                    // 項目コンテナ作成
+                    const fruitItem = document.createElement('div');
+                    fruitItem.className = 'fruit-item';
+
+                    // 画像要素作成
+                    const img = document.createElement('img');
+                    img.src = imageDataUrl;
+                    img.className = 'fruit-img';
+                    img.alt = fruit.name;
+                    img.title = `右クリックして保存 → ${fruit.image}`;
+
+                    // ファイル名表示
+                    const fileName = document.createElement('p');
+                    fileName.textContent = fruit.image.split('/').pop();
+
+                    // 要素を組み立てる
+                    fruitItem.appendChild(img);
+                    fruitItem.appendChild(
+                        document.createElement('h3')
+                    ).textContent = fruit.name;
+                    fruitItem.appendChild(fileName);
+                    gallery.appendChild(fruitItem);
+                });
+            }
+
+            // ボタンにイベントリスナーを設定
+            document
+                .getElementById('generateBtn')
+                .addEventListener('click', populateGallery);
+        </script>
+    </body>
+</html>

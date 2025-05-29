@@ -118,10 +118,10 @@ function createFruitPlaceholder(fruit) {
 
     // 透明な背景
     ctx.clearRect(0, 0, size, size);
-    
+
     // フルーツの円を描画
     ctx.beginPath();
-    ctx.arc(size/2, size/2, fruit.radius, 0, Math.PI * 2);
+    ctx.arc(size / 2, size / 2, fruit.radius, 0, Math.PI * 2);
     ctx.fillStyle = fruit.color;
     ctx.fill();
     ctx.strokeStyle = '#555';
@@ -130,11 +130,11 @@ function createFruitPlaceholder(fruit) {
     ctx.closePath();
 
     // フルーツの名前を描画
-    ctx.font = `${Math.max(10, fruit.radius/2)}px sans-serif`;
+    ctx.font = `${Math.max(10, fruit.radius / 2)}px sans-serif`;
     ctx.fillStyle = '#000';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(fruit.name, size/2, size/2);
+    ctx.fillText(fruit.name, size / 2, size / 2);
 
     // PNGとして保存
     const buffer = canvas.toBuffer('image/png');
@@ -152,7 +152,7 @@ if (!fs.existsSync(imagesDir)) {
 }
 
 // すべてのフルーツのプレースホルダー画像を生成
-fruitData.forEach(fruit => {
+fruitData.forEach((fruit) => {
     createFruitPlaceholder(fruit);
 });
 

@@ -115,13 +115,15 @@ button:hover {
 }
 
 /* スタートボタンとリトライボタンを目立たせる */
-#startButton, #retryButton {
+#startButton,
+#retryButton {
     background-color: #2ecc71;
     font-size: 18px;
     min-width: 120px;
 }
 
-#startButton:hover, #retryButton:hover {
+#startButton:hover,
+#retryButton:hover {
     background-color: #27ae60;
 }
 
