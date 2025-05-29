@@ -6,6 +6,11 @@ const gameCanvas = document.getElementById('gameCanvas');
 const currentScoreDisplay = document.getElementById('currentScore');
 const highScoreDisplay = document.getElementById('highScore');
 const nextFruitImageDisplay = document.getElementById('nextFruitImage');
+const nextFruitNameDisplay = document.getElementById('nextFruitName');
+const afterNextFruitImageDisplay = document.getElementById(
+    'afterNextFruitImage'
+);
+const afterNextFruitNameDisplay = document.getElementById('afterNextFruitName');
 const messageTextDisplay = document.getElementById('messageText');
 const startButton = document.getElementById('startButton');
 const pauseButton = document.getElementById('pauseButton');
@@ -189,6 +194,7 @@ let gameState = 'beforeStart'; // 'beforeStart', 'playing', 'paused', 'gameOver'
 let currentScore = 0;
 let highScore = localStorage.getItem('watermelonHighScore') || 0;
 let nextFruitType = null; // 次に落ちるフルーツの型 (fruitDataの要素)
+let afterNextFruitType = null; // その次に落ちるフルーツの型
 let currentDroppingFruit = null; // 現在操作中のフルーツ
 let isFruitFalling = false; // フルーツ落下中フラグ
 
@@ -418,22 +424,36 @@ async function initializeGame() {
 
 // 次のフルーツをランダムに選択 (仕様書 2.3)
 function selectNextFruit() {
-    // さくらんぼ、いちご、ぶどう、デコポン、かきが均等確率（各20%）
+    // 次のフルーツに「その次のフルーツ」を繰り上げ
+    if (afterNextFruitType !== null) {
+        nextFruitType = afterNextFruitType;
+    } else {
+        // 初回のみランダムに選択
+        // さくらんぼ、いちご、ぶどう、デコポン、かきが均等確率（各20%）
+        const initialFruits = fruitData.slice(0, 5);
+        const randomIndex = Math.floor(Math.random() * initialFruits.length);
+        nextFruitType = initialFruits[randomIndex];
+    } // その次のフルーツをランダムに選択
     const initialFruits = fruitData.slice(0, 5);
     const randomIndex = Math.floor(Math.random() * initialFruits.length);
-    nextFruitType = initialFruits[randomIndex];
-
-    // 次のフルーツ画像表示
-    const img = fruitImages[nextFruitType.id];
-    if (img) {
-        nextFruitImageDisplay.src = nextFruitType.image;
+    afterNextFruitType = initialFruits[randomIndex]; // 「次のフルーツ」表示部分には「その次のフルーツ」を表示
+    const img2 = fruitImages[afterNextFruitType.id];
+    if (img2) {
+        nextFruitImageDisplay.src = afterNextFruitType.image;
         nextFruitImageDisplay.style.backgroundColor = 'transparent';
     } else {
         // 画像が利用できない場合は色で表示
         nextFruitImageDisplay.src = '';
-        nextFruitImageDisplay.style.backgroundColor = nextFruitType.color;
+        nextFruitImageDisplay.style.backgroundColor = afterNextFruitType.color;
         nextFruitImageDisplay.style.borderRadius = '50%';
     }
+    // フルーツ名を表示
+    nextFruitNameDisplay.textContent = afterNextFruitType.name;
+
+    // 「その次のフルーツ」表示部分は非表示
+    afterNextFruitImageDisplay.src = '';
+    afterNextFruitImageDisplay.style.display = 'none';
+    afterNextFruitNameDisplay.textContent = '';
 }
 
 // マウス/タッチ座標をCanvas座標に変換
@@ -547,7 +567,7 @@ function resetGame() {
 
 // プレビュー位置の更新
 function updatePreview(evt) {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' || isFruitFalling) return;
 
     // マウス位置を保存（後で参照できるように）
     if (evt && evt.clientX !== undefined) {
@@ -563,9 +583,9 @@ function updatePreview(evt) {
     const boundedX = Math.min(Math.max(pos.x, minX), maxX);
 
     // プレビュー位置の更新
-    if (currentDroppingFruit) {
+    if (currentDroppingFruit && !isFruitFalling) {
         currentDroppingFruit.position.x = boundedX;
-    } else {
+    } else if (!isFruitFalling) {
         // 新しいプレビューフルーツを作成 (静的で、ワールドには追加せず表示のみ)
         currentDroppingFruit = {
             position: { x: boundedX, y: nextFruitType.radius + 5 }, // 上部に配置
@@ -605,14 +625,14 @@ function dropFruit(evt) {
         console.log('フルーツが箱の外に落下しました');
         gameOver();
         return;
-    } // 次のフルーツを選択
-    selectNextFruit();
-
-    // プレビューをクリア（落下中は次のプレビュー非表示）
+    } // プレビューをクリア（落下中は次のプレビュー非表示）
     currentDroppingFruit = null; // フルーツが着地したと判断するまで待機
     setTimeout(() => {
         // 落下中フラグを解除
         isFruitFalling = false;
+
+        // ここで次のフルーツを選択（フルーツが着地したタイミング）
+        selectNextFruit();
 
         // ゲームオーバー判定を実行
         checkGameOver();
@@ -620,6 +640,9 @@ function dropFruit(evt) {
         // マウスの最新位置を取得
         const mouseX = evt.clientX || window.lastMouseX || canvasWidth / 2;
         const mouseY = evt.clientY || window.lastMouseY || 0;
+
+        // currentDroppingFruitを確実にnullに設定して、新しいフルーツのプレビューが正しく作成されるようにする
+        currentDroppingFruit = null;
 
         // 次のプレビューを有効化
         updatePreview(
