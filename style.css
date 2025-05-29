@@ -5,83 +5,148 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #f8f8f8;
+    background-color: #f5f8ff; /* 少し青みがかった背景色 */
     color: #333;
+    line-height: 1.6;
 }
 
 .container {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
+    max-width: 900px; /* 幅を広げて横方向を有効活用 */
+    padding: 20px;
+    box-sizing: border-box;
 }
 
+/* メインコンテンツ部分（横並びレイアウト） */
+.main-content {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    gap: 30px; /* パネル間の間隔を増やす */
+    align-items: flex-start; /* 上部揃え */
+    margin-top: 20px; /* 上部マージン */
+}
+
+/* サイドパネル */
+.side-panel {
+    width: 140px; /* 幅を狭くする */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* 左パネル特有のスタイル */
+.left-panel {
+    align-items: center;
+}
+
+/* ゲームエリア */
 .game-area {
-    width: 300px; /* 仕様書に記載のサイズを仮置き */
-    height: 500px; /* 仕様書に記載のサイズを仮置き */
-    border: 1px solid #333;
-    margin-bottom: 20px;
-    position: relative; /* 子要素のCanvasを絶対配置するため */
+    width: 340px; /* 少し幅を広げる */
+    height: 500px;
+    border: 2px solid #333; /* 境界線を太く */
+    border-radius: 8px; /* 角を丸く */
+    position: relative;
+    overflow: hidden; /* はみ出る要素を隠す */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 影を追加 */
+}
+
+.next-fruit-preview {
+    background-color: #ffffff;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    font-weight: bold;
+    color: #444;
+    line-height: 1.4;
 }
 
 #gameCanvas {
-    display: block; /* Canvas特有の余白を消す */
+    display: block;
     width: 100%;
-    height: 100%;
+    height: 100%; /* 高さを100%に設定 */
     background-color: #fff;
-}
-
-.ui-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+    position: absolute; /* 絶対位置指定で配置 */
+    top: 0;
+    left: 0;
 }
 
 .score-container,
 .highscore-container,
-.next-fruit-container,
 .message-container,
-.controls-container {
+.controls-container,
+.volume-control {
     padding: 8px 15px;
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-bottom: 10px;
+    text-align: center;
 }
 
 .score-container,
 .highscore-container {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 12px 15px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+#currentScore,
+#highScore {
+    color: #e91e63;
+    font-size: 1.6em;
+    display: block;
+    margin-top: 8px;
     font-weight: bold;
 }
 
 .message-container {
-    color: #f44336;
+    background-color: #fff;
+    color: #4caf50; /* 通常のメッセージは緑色に */
     font-weight: bold;
-    min-height: 1.5em;
+    min-height: 2.5em;
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 #nextFruitImage {
-    width: 40px; /* サイズを少し大きく */
-    height: 40px;
-    vertical-align: middle;
-    display: inline-block;
+    width: 50px;
+    height: 50px;
+    display: block;
     object-fit: contain;
-    margin-left: 5px;
+    margin: 10px auto 0;
 }
 
 button {
-    padding: 10px 15px;
-    font-size: 1em;
+    padding: 12px 20px;
+    font-size: 1.1em;
+    font-weight: bold;
     cursor: pointer;
     background-color: #4caf50;
     color: white;
     border: none;
-    border-radius: 4px;
-    transition: background-color 0.3s;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 button:hover {
     background-color: #3e8e41;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 #startButton {
@@ -137,20 +202,55 @@ button:hover {
     background-color: #e67e22;
 }
 
-/* レスポンシブ対応 (アスペクト比維持はJS側でCanvasサイズを調整する想定) */
-@media (max-width: 600px) {
+/* レスポンシブ対応 */
+@media (max-width: 800px) {
+    .main-content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .side-panel {
+        width: 100%;
+        max-width: 300px;
+        flex-direction: row;
+        justify-content: space-around;
+        margin-bottom: 15px;
+    }
+
+    .right-panel {
+        margin-top: 15px;
+    }
+
     .game-area {
-        width: 80vw; /* 画面幅の80% */
-        height: calc(80vw * 5 / 3); /* アスペクト比 3:5 を維持 */
+        width: 300px;
+        height: 500px;
+    }
+}
+
+@media (max-width: 400px) {
+    .game-area {
+        width: 90vw;
+        height: calc(90vw * 5 / 3); /* アスペクト比 3:5 を維持 */
+    }
+
+    .side-panel {
+        flex-direction: column;
+        gap: 10px;
     }
 
     #nextFruitImage {
-        width: 25px;
-        height: 25px;
+        width: 30px;
+        height: 30px;
     }
 
     button {
         padding: 8px 12px;
         font-size: 0.9em;
+    }
+
+    .controls-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
 }

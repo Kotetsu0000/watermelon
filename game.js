@@ -10,11 +10,9 @@ const messageTextDisplay = document.getElementById('messageText');
 const startButton = document.getElementById('startButton');
 const pauseButton = document.getElementById('pauseButton');
 const retryButton = document.getElementById('retryButton');
-const muteButton = document.getElementById('muteButton');
-const muteIcon = document.getElementById('muteIcon');
 
 // ゲーム設定
-const canvasWidth = 300;
+const canvasWidth = 340; // CSSのゲームエリアの幅と合わせる
 const canvasHeight = 500;
 
 // フルーツの進化テーブル (仕様書 2.1)
@@ -194,8 +192,13 @@ let nextFruitType = null; // 次に落ちるフルーツの型 (fruitDataの要�
 let currentDroppingFruit = null; // 現在操作中のフルーツ
 let isFruitFalling = false; // フルーツ落下中フラグ
 
+// マウス位置追跡用
+window.lastMouseX = null;
+window.lastMouseY = null;
+
 // Canvas 2D コンテキスト取得
 const ctx = gameCanvas.getContext('2d');
+// キャンバスサイズを設定（境界線のサイズとぴったり合わせる）
 gameCanvas.width = canvasWidth;
 gameCanvas.height = canvasHeight;
 
@@ -313,38 +316,33 @@ function draw() {
         }
     });
 
-    // 次に落下するフルーツのプレビュー (もしあれば)
-    if (currentDroppingFruit && gameState === 'playing') {
+    // 落下位置のプレビュー表示 (仕様書 2.2, 7.3)
+    if (gameState === 'playing' && currentDroppingFruit && !isFruitFalling) {
         const previewFruit = currentDroppingFruit.fruitInfo;
+        const previewX = currentDroppingFruit.position.x;
+        const previewY = currentDroppingFruit.position.y; // Y座標は固定
         const img = fruitImages[previewFruit.id];
 
+        ctx.save();
+        ctx.globalAlpha = 0.5; // 半透明
+
         if (img) {
-            // 半透明で画像を表示
-            ctx.globalAlpha = 0.5;
             ctx.drawImage(
                 img,
-                currentDroppingFruit.position.x - previewFruit.radius,
-                currentDroppingFruit.position.y - previewFruit.radius,
+                previewX - previewFruit.radius,
+                previewY - previewFruit.radius,
                 previewFruit.radius * 2,
                 previewFruit.radius * 2
             );
-            ctx.globalAlpha = 1.0;
         } else {
-            // 画像がなければ色付き円で表示
+            // 画像がない場合のフォールバック
             ctx.beginPath();
-            ctx.arc(
-                currentDroppingFruit.position.x,
-                currentDroppingFruit.position.y,
-                previewFruit.radius,
-                0,
-                Math.PI * 2
-            );
+            ctx.arc(previewX, previewY, previewFruit.radius, 0, Math.PI * 2);
             ctx.fillStyle = previewFruit.color;
-            ctx.globalAlpha = 0.5;
             ctx.fill();
-            ctx.globalAlpha = 1.0;
             ctx.closePath();
         }
+        ctx.restore();
     }
 }
 
@@ -404,11 +402,9 @@ async function initializeGame() {
                 error
             );
         }
-    }
-
-    // ゲーム状態初期化
+    } // ゲーム状態初期化
     gameState = 'beforeStart';
-    messageTextDisplay.textContent = 'ゲームをスタート';
+    messageTextDisplay.textContent = 'スタートボタンを押してください';
 
     // イベントリスナー設定
     setupEventListeners();
@@ -461,10 +457,7 @@ function setupEventListeners() {
     pauseButton.addEventListener('click', togglePause);
 
     // リトライボタン
-    retryButton.addEventListener('click', resetGame);
-
-    // ミュートボタン
-    muteButton.addEventListener('click', toggleMute);
+    retryButton.addEventListener('click', resetGame); // ミュートボタンは削除済み
 
     // マウス移動時のプレビュー更新
     gameCanvas.addEventListener('mousemove', updatePreview);
@@ -508,13 +501,8 @@ function startGame() {
         gameState = 'playing';
         startButton.style.display = 'none';
         pauseButton.style.display = 'inline-block';
-        messageTextDisplay.textContent = '';
-
-        // ゲーム開始効果音とBGM再生
-        if (window.gameAudio) {
-            window.gameAudio.playSFX('gameStart');
-            window.gameAudio.playBGM('main');
-        }
+        messageTextDisplay.textContent = 'プレイ中...';
+        messageTextDisplay.style.color = '#4caf50'; // 緑色        // オーディオを無効化
     }
 }
 
@@ -524,33 +512,13 @@ function togglePause() {
         gameState = 'paused';
         pauseButton.textContent = '再開';
         messageTextDisplay.textContent = '一時停止中';
-
-        // BGMをフェードアウトさせるなどの処理も可能
-        // 今回はシンプルにループのみ停止
-        if (
-            window.gameAudio &&
-            audioObjects &&
-            audioObjects.bgm &&
-            audioObjects.bgm.main
-        ) {
-            audioObjects.bgm.main.pause();
-        }
+        messageTextDisplay.style.color = '#2196f3'; // 青色に変更
+        // オーディオを無効化
     } else if (gameState === 'paused') {
         gameState = 'playing';
         pauseButton.textContent = '一時停止';
-        messageTextDisplay.textContent = '';
-
-        // BGM再開
-        if (
-            window.gameAudio &&
-            audioObjects &&
-            audioObjects.bgm &&
-            audioObjects.bgm.main
-        ) {
-            audioObjects.bgm.main
-                .play()
-                .catch((e) => console.warn('BGM再開エラー:', e));
-        }
+        messageTextDisplay.textContent = 'プレイ中...';
+        messageTextDisplay.style.color = '#4caf50'; // 緑色に戻す        // オーディオを無効化
     }
 }
 
@@ -574,24 +542,29 @@ function resetGame() {
     pauseButton.style.display = 'none';
 
     // 次のフルーツ選択
-    selectNextFruit();
-
-    // ゲーム状態の更新
+    selectNextFruit(); // ゲーム状態の更新
     gameState = 'beforeStart';
-    messageTextDisplay.textContent = 'ゲームをスタート';
+    messageTextDisplay.textContent = 'スタートボタンを押してください';
+    messageTextDisplay.style.color = '#4caf50'; // 通常の色に戻す
 }
 
 // プレビュー位置の更新
 function updatePreview(evt) {
-    if (gameState !== 'playing') return; // currentDroppingFruitのチェックを削除
-    
+    if (gameState !== 'playing') return;
+
+    // マウス位置を保存（後で参照できるように）
+    if (evt && evt.clientX !== undefined) {
+        window.lastMouseX = evt.clientX;
+        window.lastMouseY = evt.clientY;
+    }
+
     const pos = getMousePos(gameCanvas, evt);
-    
+
     // 左右の壁との間の範囲に制限
     const minX = wallThickness + nextFruitType.radius;
     const maxX = canvasWidth - wallThickness - nextFruitType.radius;
     const boundedX = Math.min(Math.max(pos.x, minX), maxX);
-    
+
     // プレビュー位置の更新
     if (currentDroppingFruit) {
         currentDroppingFruit.position.x = boundedX;
@@ -606,22 +579,22 @@ function updatePreview(evt) {
 
 // フルーツ落下
 function dropFruit(evt) {
-    if (gameState !== 'playing' || currentDroppingFruit === null || isFruitFalling) return;
+    if (
+        gameState !== 'playing' ||
+        currentDroppingFruit === null ||
+        isFruitFalling
+    )
+        return;
 
     // 落下中フラグをセット
     isFruitFalling = true;
-    
+
     // フルーツの生成位置
     const dropX = currentDroppingFruit.position.x;
     const dropY = nextFruitType.radius + 5; // 画面上部（少し余裕を持たせる）
 
     // 実際のフルーツを作成してワールドに追加
-    const newFruit = createFruit(dropX, dropY, nextFruitType);
-
-    // フルーツ落下効果音
-    if (window.gameAudio) {
-        window.gameAudio.playSFX('fruitDrop');
-    }
+    const newFruit = createFruit(dropX, dropY, nextFruitType); // オーディオを無効化
 
     // フルーツが箱に入らなかった場合のゲームオーバー判定（仕様書2.5）
     const leftWallX = wallThickness;
@@ -635,22 +608,26 @@ function dropFruit(evt) {
         console.log('フルーツが箱の外に落下しました');
         gameOver();
         return;
-    }    // 次のフルーツを選択
+    } // 次のフルーツを選択
     selectNextFruit();
 
     // プレビューをクリア（落下中は次のプレビュー非表示）
-    currentDroppingFruit = null;
-
-    // フルーツが着地したと判断するまで待機
+    currentDroppingFruit = null; // フルーツが着地したと判断するまで待機
     setTimeout(() => {
         // 落下中フラグを解除
         isFruitFalling = false;
-        
+
+        // マウスの最新位置を取得
+        const mouseX = evt.clientX || window.lastMouseX || canvasWidth / 2;
+        const mouseY = evt.clientY || window.lastMouseY || 0;
+
         // 次のプレビューを有効化
-        updatePreview(new MouseEvent('mousemove', {
-            clientX: evt.clientX || window.innerWidth / 2,
-            clientY: evt.clientY || 0
-        }));
+        updatePreview(
+            new MouseEvent('mousemove', {
+                clientX: mouseX,
+                clientY: mouseY,
+            })
+        );
     }, 1500); // 1.5秒待機（フルーツが着地するのに十分な時間）
 }
 
@@ -662,10 +639,7 @@ function handleCollisions(event) {
         const bodyA = pairs[i].bodyA;
         const bodyB = pairs[i].bodyB;
 
-        // 衝突音の再生
-        if (window.gameAudio) {
-            window.gameAudio.playSFX('fruitCollision');
-        }
+        // 衝突音の再生            // オーディオを無効化
 
         // 両方がフルーツかつ同じ種類かチェック
         if (
@@ -715,24 +689,14 @@ function handleCollisions(event) {
                 Matter.Body.setAngularVelocity(
                     newFruit,
                     (Math.random() - 0.5) * 0.2
-                );
-
-                // フルーツ結合音を再生
-                if (window.gameAudio) {
-                    window.gameAudio.playSFX('fruitMerge');
-                }
+                ); // オーディオを無効化
 
                 // スコア加算
                 updateScore(evolvedFruit.score);
             } else {
                 // スイカ同士の場合は消滅して特別スコア加算
                 World.remove(world, bodyA);
-                World.remove(world, bodyB);
-
-                // スイカ合体の特殊効果音
-                if (window.gameAudio) {
-                    window.gameAudio.playSFX('watermelonMerge');
-                }
+                World.remove(world, bodyB); // オーディオを無効化
 
                 // スイカ同士の結合は66点 (仕様書 2.2)
                 updateScore(66);
@@ -793,18 +757,11 @@ function checkGameOver() {
 
 // ゲームオーバー処理
 function gameOver() {
-    gameState = 'gameOver';
-
-    // UI更新
-    messageTextDisplay.textContent = 'GAME OVER';
+    gameState = 'gameOver'; // UI更新
+    messageTextDisplay.textContent = 'GAME OVER - 最終スコア: ' + currentScore;
+    messageTextDisplay.style.color = '#f44336'; // 赤色に変更
     pauseButton.style.display = 'none';
-    retryButton.style.display = 'inline-block';
-
-    // ゲームオーバー効果音とBGM切り替え
-    if (window.gameAudio) {
-        window.gameAudio.playSFX('gameOver');
-        window.gameAudio.playBGM('gameOver');
-    }
+    retryButton.style.display = 'inline-block'; // オーディオを無効化
 
     console.log('ゲームオーバー！最終スコア:', currentScore);
 }

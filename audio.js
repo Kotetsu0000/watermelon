@@ -37,7 +37,7 @@ async function preloadAudio() {
                 audioObjects.bgm[key] = new Audio(path);
                 audioObjects.bgm[key].loop = true; // BGMはループ再生
                 audioObjects.bgm[key].volume = bgmVolume;
-                
+
                 // エラーハンドリング
                 audioObjects.bgm[key].onerror = () => {
                     console.warn(`BGMファイルのロードに失敗しました: ${path}`);
@@ -53,10 +53,12 @@ async function preloadAudio() {
             try {
                 audioObjects.sfx[key] = new Audio(path);
                 audioObjects.sfx[key].volume = sfxVolume;
-                
+
                 // エラーハンドリング
                 audioObjects.sfx[key].onerror = () => {
-                    console.warn(`効果音ファイルのロードに失敗しました: ${path}`);
+                    console.warn(
+                        `効果音ファイルのロードに失敗しました: ${path}`
+                    );
                 };
             } catch (e) {
                 console.warn(`効果音の読み込みに失敗しました: ${path}`, e);
