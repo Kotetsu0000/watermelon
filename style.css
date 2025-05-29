@@ -1,11 +1,12 @@
 body {
-    font-family: sans-serif;
+    font-family: 'Meiryo', 'Hiragino Kaku Gothic ProN', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #f0f0f0;
+    background-color: #f8f8f8;
+    color: #333;
 }
 
 .container {
@@ -41,21 +42,97 @@ body {
 .next-fruit-container,
 .message-container,
 .controls-container {
-    padding: 5px 10px;
-    background-color: #ddd;
-    border-radius: 5px;
+    padding: 8px 15px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+}
+
+.score-container,
+.highscore-container {
+    font-weight: bold;
+}
+
+.message-container {
+    color: #f44336;
+    font-weight: bold;
+    min-height: 1.5em;
 }
 
 #nextFruitImage {
-    width: 30px; /* 仮のサイズ */
-    height: 30px; /* 仮のサイズ */
+    width: 40px; /* サイズを少し大きく */
+    height: 40px;
     vertical-align: middle;
+    display: inline-block;
+    object-fit: contain;
+    margin-left: 5px;
 }
 
 button {
     padding: 10px 15px;
     font-size: 1em;
     cursor: pointer;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #3e8e41;
+}
+
+#startButton {
+    background-color: #4caf50;
+}
+
+#pauseButton {
+    background-color: #2196f3;
+}
+
+#retryButton {
+    background-color: #f44336;
+}
+
+/* ミュートボタンのスタイル */
+#muteButton {
+    background-color: #3498db;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 18px;
+    margin-left: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+#muteButton:hover {
+    background-color: #2980b9;
+}
+
+/* スタートボタンとリトライボタンを目立たせる */
+#startButton, #retryButton {
+    background-color: #2ecc71;
+    font-size: 18px;
+    min-width: 120px;
+}
+
+#startButton:hover, #retryButton:hover {
+    background-color: #27ae60;
+}
+
+/* 一時停止ボタン */
+#pauseButton {
+    background-color: #f39c12;
+    min-width: 120px;
+}
+
+#pauseButton:hover {
+    background-color: #e67e22;
 }
 
 /* レスポンシブ対応 (アスペクト比維持はJS側でCanvasサイズを調整する想定) */
