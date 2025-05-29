@@ -246,9 +246,6 @@ function gameLoop(timestamp) {
         // 物理エンジンの更新
         Engine.update(engine, 1000 / 60); // 60FPS想定
 
-        // ゲームオーバー判定
-        checkGameOver();
-
         // 描画処理
         draw();
     }
@@ -617,6 +614,9 @@ function dropFruit(evt) {
         // 落下中フラグを解除
         isFruitFalling = false;
 
+        // ゲームオーバー判定を実行
+        checkGameOver();
+
         // マウスの最新位置を取得
         const mouseX = evt.clientX || window.lastMouseX || canvasWidth / 2;
         const mouseY = evt.clientY || window.lastMouseY || 0;
@@ -720,6 +720,8 @@ function updateScore(points) {
 
 // ゲームオーバー判定
 function checkGameOver() {
+    if (gameState !== 'playing') return; // ゲームプレイ中のみ判定
+
     // ラインを超えるフルーツがあるかチェック
     const bodies = Matter.Composite.allBodies(world);
     let anyFruitOverflowing = false;
@@ -736,19 +738,8 @@ function checkGameOver() {
 
     // ラインを超えている状態の管理
     if (anyFruitOverflowing) {
-        if (!isOverflowing) {
-            // 初めてラインを超えた
-            isOverflowing = true;
-            overflowTimer = Date.now();
-        } else {
-            // すでにラインを超えている時間をチェック
-            const overflowDuration = Date.now() - overflowTimer;
-
-            // 3秒ルール (仕様書 2.5)
-            if (overflowDuration >= 3000) {
-                gameOver();
-            }
-        }
+        // ラインを超えていたら即ゲームオーバー
+        gameOver();
     } else {
         // ラインを超えていない
         isOverflowing = false;
