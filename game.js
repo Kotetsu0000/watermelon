@@ -192,6 +192,7 @@ let currentScore = 0;
 let highScore = localStorage.getItem('watermelonHighScore') || 0;
 let nextFruitType = null; // 次に落ちるフルーツの型 (fruitDataの要素)
 let currentDroppingFruit = null; // 現在操作中のフルーツ
+let isFruitFalling = false; // フルーツ落下中フラグ
 
 // Canvas 2D コンテキスト取得
 const ctx = gameCanvas.getContext('2d');
@@ -582,26 +583,34 @@ function resetGame() {
 
 // プレビュー位置の更新
 function updatePreview(evt) {
-    if (gameState !== 'playing' || currentDroppingFruit) return;
-
+    if (gameState !== 'playing') return; // currentDroppingFruitのチェックを削除
+    
     const pos = getMousePos(gameCanvas, evt);
-
+    
     // 左右の壁との間の範囲に制限
     const minX = wallThickness + nextFruitType.radius;
     const maxX = canvasWidth - wallThickness - nextFruitType.radius;
     const boundedX = Math.min(Math.max(pos.x, minX), maxX);
-
-    // 新しいプレビューフルーツを作成 (静的で、ワールドには追加せず表示のみ)
-    currentDroppingFruit = {
-        position: { x: boundedX, y: nextFruitType.radius + 5 }, // 上部に配置
-        fruitInfo: nextFruitType,
-    };
+    
+    // プレビュー位置の更新
+    if (currentDroppingFruit) {
+        currentDroppingFruit.position.x = boundedX;
+    } else {
+        // 新しいプレビューフルーツを作成 (静的で、ワールドには追加せず表示のみ)
+        currentDroppingFruit = {
+            position: { x: boundedX, y: nextFruitType.radius + 5 }, // 上部に配置
+            fruitInfo: nextFruitType,
+        };
+    }
 }
 
 // フルーツ落下
 function dropFruit(evt) {
-    if (gameState !== 'playing' || currentDroppingFruit === null) return;
+    if (gameState !== 'playing' || currentDroppingFruit === null || isFruitFalling) return;
 
+    // 落下中フラグをセット
+    isFruitFalling = true;
+    
     // フルーツの生成位置
     const dropX = currentDroppingFruit.position.x;
     const dropY = nextFruitType.radius + 5; // 画面上部（少し余裕を持たせる）
@@ -626,23 +635,23 @@ function dropFruit(evt) {
         console.log('フルーツが箱の外に落下しました');
         gameOver();
         return;
-    }
-
-    // 次のフルーツを選択
+    }    // 次のフルーツを選択
     selectNextFruit();
 
     // プレビューをクリア（落下中は次のプレビュー非表示）
     currentDroppingFruit = null;
 
-    // 少し待ってから次のプレビューを有効化（連打防止）
+    // フルーツが着地したと判断するまで待機
     setTimeout(() => {
-        // フルーツ落下完了を判定する何らかのロジック
-        // この例では単純に時間で判断
-        currentDroppingFruit = {
-            position: { x: dropX, y: dropY },
-            fruitInfo: nextFruitType,
-        };
-    }, 500); // 0.5秒待機
+        // 落下中フラグを解除
+        isFruitFalling = false;
+        
+        // 次のプレビューを有効化
+        updatePreview(new MouseEvent('mousemove', {
+            clientX: evt.clientX || window.innerWidth / 2,
+            clientY: evt.clientY || 0
+        }));
+    }, 1500); // 1.5秒待機（フルーツが着地するのに十分な時間）
 }
 
 // 衝突ハンドリング
