@@ -1,5 +1,7 @@
 # スイカゲーム Web アプリ
 
+![スイカゲームのプレイ画面](images/game_image.png)
+
 Matter.js を使用した物理演算で動作する HTML5 ゲーム「スイカゲーム」の Web ブラウザ版です。
 
 🍉 **[ゲームをプレイする](https://kotetsu0000.github.io/watermelon/)** 🍉
